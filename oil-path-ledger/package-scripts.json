@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "hardhat:compile": "npx hardhat compile",
+    "hardhat:test": "npx hardhat test",
+    "hardhat:deploy:amoy": "npx hardhat run scripts/deploy.js --network amoy",
+    "hardhat:deploy:mumbai": "npx hardhat run scripts/deploy.js --network mumbai",
+    "hardhat:deploy:local": "npx hardhat run scripts/deploy.js --network localhost",
+    "hardhat:verify:amoy": "npx hardhat verify --network amoy",
+    "hardhat:verify:mumbai": "npx hardhat verify --network mumbai",
+    "hardhat:console:amoy": "npx hardhat console --network amoy",
+    "hardhat:console:mumbai": "npx hardhat console --network mumbai",
+    "hardhat:node": "npx hardhat node"
+  }
+}
