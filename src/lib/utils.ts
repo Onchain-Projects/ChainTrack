@@ -11,5 +11,5 @@ export function cn(...inputs: ClassValue[]) {
  * This ensures QR codes work across different networks/devices
  */
 export function getBaseUrl(): string {
-  return 'https://preview--oil-path-ledger.lovable.app';
+  return 'https://chaintrack-eight.vercel.app/';
 }
