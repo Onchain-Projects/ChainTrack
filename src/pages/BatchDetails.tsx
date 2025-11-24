@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useMetaMask } from "@/hooks/useMetaMask";
-import { ChainTrackContract } from "@/lib/blockchain";
+import { ChainTrackContract, getPolygonscanUrl } from "@/lib/blockchain";
 import { supabase } from "@/integrations/supabase/client";
 import { MerkleTree } from "@/lib/merkleTree";
 import { 
@@ -430,7 +430,7 @@ const BatchDetails = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(`https://www.oklink.com/amoy/tx/${batchData.blockchain_hash}`, '_blank')}
+                        onClick={() => window.open(getPolygonscanUrl(batchData.blockchain_hash), '_blank')}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
                         View

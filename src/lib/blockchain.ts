@@ -399,7 +399,7 @@ export const CHAINTRACK_ABI = [
 // Polygon Amoy Testnet Configuration
 export const CHAINTRACK_CONTRACT_ADDRESS = "0x444607c3F4788e8cB1f8B29132c6Ea6F4cac01bc";
 export const POLYGON_AMOY_CHAIN_ID = 80002;
-export const AMOY_EXPLORER_URL = "https://www.oklink.com/amoy";
+export const AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 // Use custom Alchemy RPC URL from env, fallback to public RPC
 export const AMOY_RPC_URL = import.meta.env.VITE_POLYGON_AMOY_RPC_URL || "https://rpc-amoy.polygon.technology/";
 

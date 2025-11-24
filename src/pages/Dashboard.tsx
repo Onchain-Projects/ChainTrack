@@ -15,6 +15,7 @@ import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWalletSync } from "@/hooks/useWalletSync";
+import { getPolygonscanUrl } from "@/lib/blockchain";
 import { 
   Factory, 
   Truck, 
@@ -434,7 +435,7 @@ const Dashboard = () => {
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0"
-                          onClick={() => window.open(`https://www.oklink.com/amoy/tx/${item.blockchain_hash}`, '_blank')}
+                          onClick={() => window.open(getPolygonscanUrl(item.blockchain_hash), '_blank')}
                           title="View on blockchain"
                         >
                           <ExternalLink className="h-4 w-4" />

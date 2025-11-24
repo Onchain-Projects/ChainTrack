@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useMetaMask } from "@/hooks/useMetaMask";
-import { ChainTrackContract } from "@/lib/blockchain";
+import { ChainTrackContract, getPolygonscanUrl } from "@/lib/blockchain";
 import { supabase } from "@/integrations/supabase/client";
 import { Truck, Loader2, Shield, Info, Package, CheckCircle, XCircle, ExternalLink, Hash, Calendar, User, MapPin } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -642,7 +642,7 @@ export const MovementForm = ({ onMovementCreated, hideTitle = false }: MovementF
                             variant="outline"
                             size="sm"
                             className="w-full text-xs"
-                            onClick={() => window.open(`https://www.oklink.com/amoy/tx/${batchVerification.batchDetails.blockchain_hash}`, '_blank')}
+                            onClick={() => window.open(getPolygonscanUrl(batchVerification.batchDetails.blockchain_hash), '_blank')}
                           >
                             <ExternalLink className="h-3 w-3 mr-1" />
                             View on Blockchain

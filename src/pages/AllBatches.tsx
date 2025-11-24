@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { getPolygonscanUrl } from "@/lib/blockchain";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Package, Search, ExternalLink, Loader2, ArrowLeft, Shield } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -179,7 +180,7 @@ const AllBatches = () => {
                                 size="sm"
                                 onClick={() =>
                                   window.open(
-                                    `https://www.oklink.com/amoy/tx/${batch.blockchain_hash}`,
+                                    getPolygonscanUrl(batch.blockchain_hash),
                                     "_blank"
                                   )
                                 }
