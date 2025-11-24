@@ -6,11 +6,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useMetaMask } from "@/hooks/useMetaMask";
 import { ChainTrackContract } from "@/lib/blockchain";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Loader2, Hash, Copy, Check, Sparkles } from "lucide-react";
+import { Package, Loader2, Hash, Copy, Check, Sparkles, ChevronDown } from "lucide-react";
 import { MerkleTree } from "@/lib/merkleTree";
 import QRCode from "qrcode";
 import { normalizeAddress } from "@/lib/ethUtils";
 import { getBaseUrl } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CreateBatchFormProps {
   onBatchCreated?: () => void;
@@ -34,6 +35,7 @@ export const CreateBatchForm = ({ onBatchCreated, hideTitle = false, hideButton 
   const [productItems, setProductItems] = useState<string[]>([]);
   const [merkleRoot, setMerkleRoot] = useState<string>('');
   const [generatedBatchCode, setGeneratedBatchCode] = useState<string>('');
+  const [showProductIds, setShowProductIds] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -261,6 +263,8 @@ export const CreateBatchForm = ({ onBatchCreated, hideTitle = false, hideButton 
         });
         setProductItems([]);
         setMerkleRoot('');
+        setGeneratedBatchCode('');
+        setShowProductIds(false);
 
         onBatchCreated?.();
       } else {
@@ -322,36 +326,9 @@ export const CreateBatchForm = ({ onBatchCreated, hideTitle = false, hideButton 
 
   return (
     <div className={hideTitle ? "" : "p-6"}>
-      <form onSubmit={handleSubmit} className="space-y-6" id="create-batch-form">
-        {generatedBatchCode && (
-          <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/30 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold text-primary">Batch Code Generated</span>
-                </div>
-                <code className="text-sm font-mono bg-background/50 px-2 py-1 rounded border break-all">{generatedBatchCode}</code>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(generatedBatchCode);
-                  toast({ title: "Copied", description: "Batch code copied to clipboard" });
-                }}
-                className="flex-shrink-0"
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                Copy
-              </Button>
-            </div>
-          </div>
-        )}
-
+      <form onSubmit={handleSubmit} className="space-y-5" id="create-batch-form">
         <div className="space-y-2">
-          <Label htmlFor="productType" className="text-sm font-semibold">Product Type</Label>
+          <Label htmlFor="productType" className="text-sm font-medium">Product Type</Label>
           <Input
             id="productType"
             name="productType"
@@ -359,16 +336,13 @@ export const CreateBatchForm = ({ onBatchCreated, hideTitle = false, hideButton 
             value={formData.productType}
             onChange={handleChange}
             required
-            className="h-11"
+            className="h-10"
           />
-          <p className="text-xs text-muted-foreground">
-            Batch code will be auto-generated based on product type
-          </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="productionDate" className="text-sm font-semibold">Production Date</Label>
+            <Label htmlFor="productionDate" className="text-sm font-medium">Production Date</Label>
             <Input
               id="productionDate"
               name="productionDate"
@@ -376,12 +350,12 @@ export const CreateBatchForm = ({ onBatchCreated, hideTitle = false, hideButton 
               value={formData.productionDate}
               onChange={handleChange}
               required
-              className="h-11"
+              className="h-10"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="expiryDate" className="text-sm font-semibold">Expiry Date</Label>
+            <Label htmlFor="expiryDate" className="text-sm font-medium">Expiry Date</Label>
             <Input
               id="expiryDate"
               name="expiryDate"
@@ -389,13 +363,13 @@ export const CreateBatchForm = ({ onBatchCreated, hideTitle = false, hideButton 
               value={formData.expiryDate}
               onChange={handleChange}
               required
-              className="h-11"
+              className="h-10"
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="quantity" className="text-sm font-semibold">Quantity</Label>
+          <Label htmlFor="quantity" className="text-sm font-medium">Quantity</Label>
           <Input
             id="quantity"
             name="quantity"
@@ -405,68 +379,58 @@ export const CreateBatchForm = ({ onBatchCreated, hideTitle = false, hideButton 
             onChange={handleChange}
             placeholder="e.g., 1000"
             required
-            className="h-11"
+            className="h-10"
           />
-          <p className="text-xs text-muted-foreground">
-            Unique product IDs will be automatically generated for each item
-          </p>
         </div>
 
         {productItems.length > 0 && (
-          <div className="space-y-3 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border-2 border-primary/20">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <Label className="text-sm font-semibold">Auto-Generated Product Identifiers</Label>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {productItems.length} unique product ID{productItems.length !== 1 ? 's' : ''} will be generated automatically
-            </p>
-            
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-              {productItems.slice(0, 10).map((item, index) => (
-                <div key={index} className="flex gap-2 items-center p-2 bg-background/50 rounded border">
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-semibold flex-shrink-0">
-                    {index + 1}
+          <Collapsible open={showProductIds} onOpenChange={setShowProductIds}>
+            <CollapsibleTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full justify-between text-sm text-muted-foreground hover:text-foreground"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  <span>{productItems.length} product IDs will be generated</span>
+                </div>
+                <ChevronDown className={`h-4 w-4 transition-transform ${showProductIds ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-2 p-3 bg-muted/30 rounded-lg border space-y-2 max-h-48 overflow-y-auto">
+                {productItems.slice(0, 5).map((item, index) => (
+                  <div key={index} className="flex gap-2 items-center text-xs">
+                    <span className="text-muted-foreground font-mono">{index + 1}.</span>
+                    <code className="text-xs font-mono flex-1 break-all">{item}</code>
                   </div>
-                  <code className="text-xs font-mono flex-1 bg-background/50 px-2 py-1 rounded border break-all">
-                    {item}
-                  </code>
-                </div>
-              ))}
-              {productItems.length > 10 && (
-                <div className="text-xs text-muted-foreground text-center py-2">
-                  ... and {productItems.length - 10} more product IDs
-                </div>
-              )}
-            </div>
-          </div>
+                ))}
+                {productItems.length > 5 && (
+                  <div className="text-xs text-muted-foreground text-center pt-1">
+                    ... and {productItems.length - 5} more
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
-        {merkleRoot && (
-          <div className="p-4 bg-gradient-to-r from-muted/50 to-muted/30 border-2 border-primary/20 rounded-xl">
-            <div className="flex items-center gap-2 mb-3">
-              <Hash className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">Merkle Root Generated</span>
-            </div>
-            <code className="text-xs break-all bg-background/50 px-3 py-2 rounded border block font-mono">{merkleRoot}</code>
-          </div>
-        )}
-
-        <div className="sticky bottom-0 bg-background pt-4 pb-2 -mx-6 px-6 border-t mt-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <div className="pt-2">
           <Button 
             type="submit" 
             disabled={isLoading || !isConnected} 
-            className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+            className="w-full h-10 text-base font-medium"
             size="lg"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Creating Batch...
               </>
             ) : (
               <>
-                <Package className="h-5 w-5 mr-2" />
+                <Package className="h-4 w-4 mr-2" />
                 Create Batch
               </>
             )}
