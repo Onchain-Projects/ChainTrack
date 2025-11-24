@@ -306,11 +306,16 @@ const Consumer = () => {
           setBlockchainVerified(false);
         }
         
-        // Verify product after batch is loaded
+        // Verify product after batch is loaded - pass batch code directly to avoid race condition
         console.log('🔒 Verifying product...');
         setTimeout(() => {
-          handleVerifyProduct(productIdParam).catch(err => {
+          handleVerifyProduct(productIdParam, actualBatch.batch_code).catch(err => {
             console.error('❌ Product verification error:', err);
+            toast({
+              title: "Verification Error",
+              description: err instanceof Error ? err.message : "Failed to verify product",
+              variant: "destructive",
+            });
           });
         }, 500);
         
@@ -393,12 +398,24 @@ const Consumer = () => {
     }
   }, [searchParams, handleSearchFromQR, toast, productId, batchCode, batchInfo]);
 
-  const handleVerifyProduct = async (idOverride?: string) => {
+  const handleVerifyProduct = async (idOverride?: string, batchCodeOverride?: string) => {
     const productIdToVerify = idOverride || productId;
     if (!productIdToVerify.trim()) {
       toast({
         title: "Invalid Input",
         description: "Please enter a product identifier",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Use provided batch code, or fall back to batchInfo, or use batchCode from state
+    let batchCodeToUse = batchCodeOverride || batchInfo?.code || batchCode.trim();
+    
+    if (!batchCodeToUse) {
+      toast({
+        title: "Missing Batch Information",
+        description: "Batch information is not available. Please search for a batch first.",
         variant: "destructive",
       });
       return;
@@ -414,7 +431,7 @@ const Consumer = () => {
       const contract = new ChainTrackContract(readOnlyProvider);
       
       // Verify batch exists on blockchain and get merkle root
-      const blockchainBatch = await contract.getBatch(batchInfo.code);
+      const blockchainBatch = await contract.getBatch(batchCodeToUse);
       
       if (!blockchainBatch || !blockchainBatch.exists) {
         setProductVerified(false);
@@ -427,7 +444,7 @@ const Consumer = () => {
       }
 
       // Use merkle root from blockchain if database doesn't have it
-      const merkleRootToUse = batchInfo.merkleRoot || blockchainBatch.merkleRoot;
+      const merkleRootToUse = batchInfo?.merkleRoot || blockchainBatch.merkleRoot;
       
       if (!merkleRootToUse) {
         toast({
@@ -443,7 +460,7 @@ const Consumer = () => {
       const { data: batchRecord } = await supabase
         .from('batches')
         .select('id')
-        .eq('batch_code', batchInfo.code)
+        .eq('batch_code', batchCodeToUse)
         .single();
 
       // Get stored Merkle proof from database
@@ -471,7 +488,7 @@ const Consumer = () => {
         
         // Verify Merkle proof on blockchain (read-only, no wallet needed)
         const isValid = await contract.verifyMerkleProof(
-          batchInfo.code,
+          batchCodeToUse,
           proof.leaf,
           proof.proof
         );
